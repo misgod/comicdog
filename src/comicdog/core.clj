@@ -63,13 +63,19 @@
     (download-content url epsoid-dir)))
 
 
+
+
 (defn download-all [url]
   "Download all episodes of this comic"
   (let [html (get-html url)
         name ((:comic-name *extractor*) html)
         dir  (mkdir name)]
     (doseq [epsode-url ((:epsoid-lists *extractor*) html)]
-      (download-episode epsode-url dir))))
+      (try
+        (download-episode epsode-url dir)
+        (catch Exception e (do
+                             (prn "somethin error!!!")
+                             (prn (.getMessage e))))))))
 
 (defn go [url]
   (binding [*extractor* (extractor url)]
