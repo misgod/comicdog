@@ -2,6 +2,7 @@
   (:require [net.cgrand.enlive-html :as e]
             [clojure.java.io :as io]
             [clj-http.client :as client]
+            [clj-http.conn-mgr :refer [make-reusable-conn-manager shutdown-manager]]
             [comicdog.common :refer :all]
             [comicdog.sites.ck101 :refer :all]
             [clojure.tools.cli :refer [parse-opts]])
@@ -20,8 +21,11 @@
 (defn do-erro-log [dir]
   (spit "error.log" (str (.getName dir) "\n") :append true))
 
+(def cm (make-reusable-conn-manager {:timeout 10 :threads 1}))
+
+
 (defn get-html [url]
-  (let [response (client/get url)
+  (let [response (client/get url {:connection-manager cm})
         status (:status response)
         body   (:body response)]
     (if (or (= status 200) (= status 201))
@@ -30,11 +34,16 @@
 
 (defn download-image [uri file]
   (try
-    (with-open [in (io/input-stream uri)
-                out (io/output-stream file)]
-      (io/copy in out))
+    (io/copy
+     (:body (client/get uri {:connection-manager cm :as :stream}))
+     (io/file file))
     (prn " Done!")
     (catch Exception e (prn  "error!\n " (.getMessage e)))))
+
+
+(clojure.java.io/copy
+ (:body (client/get "http://placehold.it/350x150" {:as :stream}))
+ (java.io.File. "test-file.gif"))
 
 
 
@@ -83,7 +92,8 @@
 
 (defn go [url]
   (binding [*extractor* (extractor url)]
-    (download-all url)))
+    (download-all url)
+    (shutdown-manager cm)))
 
 
 (defn -main [& args]
