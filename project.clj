@@ -7,7 +7,7 @@
                  [http-kit "2.1.16"]
                  [clj-http "2.0.0"]
                  [enlive "1.1.5"]
+                 [clojurewerkz/urly "1.0.0"]
                  [org.clojure/tools.cli "0.3.1"]]
   :plugins [[cider/cider-nrepl "0.9.1"]]
-  :main comicdog.core
-  )
+  :main comicdog.core)
