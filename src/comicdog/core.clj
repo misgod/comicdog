@@ -43,10 +43,12 @@
         imgurl ((:content-image *extractor*) html)
         file (io/file dir filename)]
     (print "download " filename " => ")
+
+    (if (.exists file)
+      (prn "exists!")
+      (download-image imgurl file))
+
     (when-not (nil? next)
-      (if (.exists file)
-        (prn "exists!")
-        (download-image imgurl file))
       (recur next dir))))
 
 
