@@ -17,6 +17,9 @@
   ([name parent] (-> (io/file parent  name)
                      (mkdir))))
 
+(defn do-erro-log [dir]
+  (spit "error.log" (str (.getName dir) "\n") :append true))
+
 (defn get-html [url]
   (let [response (client/get url)
         status (:status response)
@@ -60,7 +63,12 @@
         ;;entry ((:epsoid-entry *extractor*) html)
         epsoid-dir (mkdir name dir)]
     (prn "Download episode:" name)
-    (download-content url epsoid-dir)))
+    (try
+      (download-content url epsoid-dir)
+      (catch Exception e (do
+                           (do-erro-log epsoid-dir)
+                           (prn "somethin error!!!")
+                           (prn (.getMessage e)))))))
 
 
 
@@ -71,11 +79,7 @@
         name ((:comic-name *extractor*) html)
         dir  (mkdir name)]
     (doseq [epsode-url ((:epsoid-lists *extractor*) html)]
-      (try
-        (download-episode epsode-url dir)
-        (catch Exception e (do
-                             (prn "somethin error!!!")
-                             (prn (.getMessage e))))))))
+        (download-episode epsode-url dir))))
 
 (defn go [url]
   (binding [*extractor* (extractor url)]
