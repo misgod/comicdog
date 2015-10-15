@@ -40,13 +40,6 @@
     (prn " Done!")
     (catch Exception e (prn  "error!\n " (.getMessage e)))))
 
-
-(clojure.java.io/copy
- (:body (client/get "http://placehold.it/350x150" {:as :stream}))
- (java.io.File. "test-file.gif"))
-
-
-
 (defn download-content [url dir]
   "download image by pages"
   (let [html (get-html url)
