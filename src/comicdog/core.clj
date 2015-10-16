@@ -90,7 +90,6 @@
 
 
 (defn -main [& args]
-  (let [url (first args)]
-    (if (nil? url)
-      (prn "no url")
-      (go url))))
+  (if (empty? args)
+    (prn "no url")
+    (doseq [url args] (go url))))
