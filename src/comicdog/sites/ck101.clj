@@ -27,7 +27,7 @@
       (absolute-url)))
 
 (defn extract-content-filename [html]
-  "extract current page number of this epsoid and return filename to store this image"
+  "extract current page number of this episode and return filename to store this image"
   (let [selector [:div.pageNumber :span.pageOne :> e/text-node]
         to-int #(. Integer parseInt %)
         format-name #(format "%03d.jpg" %)]
@@ -45,20 +45,20 @@
 
 
 (defn extract-comic-lists [html]
-  "extract all epsoids of this comic"
+  "extract all episodes of this comic"
   (->> (extract-node html [:div.comicBox :div.relativeRec :h3.recTitle :a])
        (re-seq #"href=\"(/vols.*?)\"")
        (map second)
        (map #(str "http://comic.ck101.com" %))
        (reverse)))
 
-;; (defn extract-epsoid-entry [html]
-;;   "extract the entry url of this epsoid"
+;; (defn extract-episode-entry [html]
+;;   "extract the entry url of this episode"
 ;;   )
 
 
-(defn extract-epsoid-name [html]
-  "extract the name of this epsoid for dir create"
+(defn extract-episode-name [html]
+  "extract the name of this episode for dir create"
   (-> html
       (extract-node [:h2.pageTitle :strong e/text-node])
       (.trim)))
@@ -67,8 +67,8 @@
 
 (def ck101-extractor
   {:comic-name  extract-comic-name
-   :epsoid-lists extract-comic-lists
-   :epsoid-name extract-epsoid-name
+   :episode-lists extract-comic-lists
+   :episode-name extract-episode-name
    :content-filename extract-content-filename
    :content-image extract-content-img
    :content-next extract-content-next})

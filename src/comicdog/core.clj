@@ -21,7 +21,7 @@
 (defn do-erro-log [dir]
   (spit "error.log" (str (.getName dir) "\n") :append true))
 
-(def cm (make-reusable-conn-manager {:timeout 10 :threads 1}))
+(def cm (make-reusable-conn-manager {:timeout 10 :threads 2}))
 
 
 (defn get-html [url]
@@ -32,12 +32,23 @@
       body
       (prn "download" url "fail"))))
 
+(defn mark-episode-done [dir]
+  "Put a .done file in the dir to avoid rescan it"
+  (.createNewFile (io/file dir ".done")))
+
+
+
+(defn is-episode-done [dir]
+  "Check if there is .done in this dir"
+  (.exists (io/file dir ".done")))
+
+
 (defn download-image [uri file]
   (try
     (io/copy
      (:body (client/get uri {:connection-manager cm :as :stream}))
      (io/file file))
-    (prn " Done!")
+    (prn "Done!\n")
     (catch Exception e (prn  "error!\n " (.getMessage e)))))
 
 (defn download-content [url dir]
@@ -50,7 +61,7 @@
     (print "download " filename " => ")
 
     (if (.exists file)
-      (prn "exists!")
+      (print "exists!\n")
       (download-image imgurl file))
 
     (when-not (nil? next)
@@ -61,16 +72,18 @@
 (defn download-episode [url dir]
   "Make dir and download episode"
   (let [html (get-html url)
-        name ((:epsoid-name *extractor*) html)
-        ;;entry ((:epsoid-entry *extractor*) html)
-        epsoid-dir (mkdir name dir)]
+        name ((:episode-name *extractor*) html)
+        ;;entry ((:episode-entry *extractor*) html)
+        episode-dir (mkdir name dir)]
     (prn "Download episode:" name)
-    (try
-      (download-content url epsoid-dir)
-      (catch Exception e (do
-                           (do-erro-log epsoid-dir)
-                           (prn "somethin error!!!")
-                           (prn (.getMessage e)))))))
+    (when-not (is-episode-done episode-dir)
+      (try
+        (download-content url episode-dir)
+        (mark-episode-done episode-dir)
+        (catch Exception e (do
+                             (do-erro-log episode-dir)
+                             (prn "somethin error!!!")
+                             (prn (.getMessage e))))))))
 
 
 
@@ -80,16 +93,16 @@
   (let [html (get-html url)
         name ((:comic-name *extractor*) html)
         dir  (mkdir name)]
-    (doseq [epsode-url ((:epsoid-lists *extractor*) html)]
-        (download-episode epsode-url dir))))
+    (doseq [episode-url ((:episode-lists *extractor*) html)]
+        (download-episode episode-url dir))))
 
 (defn go [url]
   (binding [*extractor* (extractor url)]
-    (download-all url)
-    (shutdown-manager cm)))
+    (download-all url)))
 
 
 (defn -main [& args]
   (if (empty? args)
     (prn "no url")
-    (doseq [url args] (go url))))
+    (doseq [url args] (go url)))
+  (shutdown-manager cm))
