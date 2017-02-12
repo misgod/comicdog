@@ -4,7 +4,8 @@
             [clj-http.client :as client]
             [clj-http.conn-mgr :refer [make-reusable-conn-manager shutdown-manager]]
             [comicdog.common :refer :all]
-            [comicdog.sites.ck101 :refer :all]
+            [comicdog.sites.ck101]
+            [comicdog.sites.cartoonmad]
             [clojure.tools.cli :refer [parse-opts]])
   (:gen-class :main true))
 
@@ -25,7 +26,8 @@
 
 
 (defn get-html [url]
-  (let [response (client/get url {:connection-manager cm})
+  (let [encoding (:encoding *extractor*)
+        response (client/get url {:connection-manager cm  :as encoding})
         status (:status response)
         body   (:body response)]
     (if (or (= status 200) (= status 201))
@@ -48,8 +50,8 @@
     (io/copy
      (:body (client/get uri {:connection-manager cm :as :stream}))
      (io/file file))
-    (prn "Done!\n")
-    (catch Exception e (prn  "error!\n " (.getMessage e)))))
+    (prn "Done!")
+    (catch Exception e (prn  "error! " (.getMessage e)))))
 
 (defn download-content [url dir]
   "download image by pages"
@@ -106,3 +108,6 @@
     (prn "no url")
     (doseq [url args] (go url)))
   (shutdown-manager cm))
+
+
+
