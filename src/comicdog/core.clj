@@ -70,7 +70,6 @@
       (recur next dir))))
 
 
-
 (defn download-episode [url dir]
   "Make dir and download episode"
   (let [html (get-html url)
@@ -84,11 +83,7 @@
         (mark-episode-done episode-dir)
         (catch Exception e (do
                              (do-erro-log episode-dir)
-                             (prn "somethin error!!!")
-                             (prn (.getMessage e))))))))
-
-
-
+                             (clojure.stacktrace/print-stack-trace) ))))))
 
 (defn download-all [url]
   "Download all episodes of this comic"
@@ -108,6 +103,8 @@
     (prn "no url")
     (doseq [url args] (go url)))
   (shutdown-manager cm))
+
+
 
 
 

@@ -10,7 +10,7 @@
     (nil? url) nil
     (.startsWith url "http") url
     (.startsWith url "/") (str "http://www.cartoonmad.com" url)
-    :else (str  "http://www.cartonmad.com/comic/" url)))
+    :else (str  "http://www.cartoonmad.com/comic/" url)))
 
 
 (defn extract-content-img [html]
@@ -29,8 +29,7 @@
 
 (defn extract-content-filename [html]
   "extract current page number of this episode and return filename to store this image"
-  (let [selector [:div.pageNumber :span.pageOne :> e/text-node]
-        to-int #(. Integer parseInt %)
+  (let [to-int #(. Integer parseInt %)
         format-name #(format "%03d.jpg" %)]
     (->> html
         (re-find  #"<option selected>第 (\d+)? 頁</option>")
